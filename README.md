@@ -121,6 +121,7 @@ ORDER BY freight_sum;
 <summary>📂 6. Проектирование БД</summary>
 <br>
 
+</details>
 
 <details>
 <summary>📂 7. Представления (Views)</summary>
