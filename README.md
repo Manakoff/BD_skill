@@ -115,6 +115,7 @@ ORDER BY freight_sum;
 <summary>📂 5. DDL - управляем БД</summary>
 <br>
 
+</details>
 
 <details>
 <summary>📂 6. Проектирование БД</summary>
