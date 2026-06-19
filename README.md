@@ -100,13 +100,30 @@ ORDER BY freight_sum;
 ### 📝 Задание 3
 
 ```sql
-
+SELECT o.customer_id, o.ship_country, order_costs.order_price
+FROM (
+	SELECT od.order_id, SUM(od.unit_price * od.quantity * (1 - od.discount)) AS order_price 
+	FROM order_details od
+	GROUP BY od.order_id
+	) AS order_costs 
+JOIN orders o USING(order_id)
+WHERE o.order_date >= '1997-09-01'
+	AND o.ship_country IN ('Argentina', 'Brazil', 'Venezuela')
+ORDER BY order_costs.order_price DESC
+LIMIT 3;
 ```
 
 ### 📝 Задание 4
 
 ```sql
-
+SELECT p.product_name
+FROM products p
+WHERE p.product_id IN (
+    SELECT od.product_id
+    FROM order_details od
+    GROUP BY od.product_id
+    HAVING SUM(od.quantity) = 10
+);
 ```
 
 </details>
@@ -114,7 +131,74 @@ ORDER BY freight_sum;
 <details>
 <summary>📂 5. DDL - управляем БД</summary>
 <br>
+	
+### 📝 Задание 1
 
+```sql
+CREATE TABLE teacher
+(
+	teacher_id serial PRIMARY KEY,
+	first_name varchar,
+	last_name varchar,
+	birthday date,
+	phone varchar,
+	title varchar
+);
+
+```
+
+### 📝 Задание 2
+
+```sql
+ALTER TABLE teacher 
+ADD middle_name varchar;
+```
+
+### 📝 Задание 3
+
+```sql
+ALTER TABLE teacher 
+DROP COLUMN middle_name;
+```
+
+### 📝 Задание 4
+
+```sql
+ALTER TABLE teacher
+RENAME COLUMN birthday TO birth_date;
+```
+
+### 📝 Задание 5
+
+```sql
+ALTER TABLE teacher
+ALTER COLUMN phone SET DATA TYPE varchar(32);
+```
+
+### 📝 Задание 6
+
+```sql
+CREATE TABLE exam (
+	exam_id serial PRIMARY KEY,
+	exam_name varchar(256),
+	exam_date date
+)
+```
+
+### 📝 Задание 7
+
+```sql
+INSERT INTO exam (exam_name, exam_date)
+VALUES 
+    ('Математика', '2026-06-01'),
+    ('Физика', '2026-06-05'),
+    ('Информатика', '2026-06-10');
+```
+### 📝 Задание 8
+
+```sql
+TRUNCATE TABLE exam RESTART IDENTITY;
+```
 </details>
 
 <details>
