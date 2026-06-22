@@ -317,6 +317,99 @@ VALUES ('Крипто-Пряник', 1, 1, '10 шт в коробке', 15.50, 1
 <details>
 <summary>📂 7. Представления (Views)</summary>
 <br>
+	
+### 📝 Задание 1
+
+```sql
+CREATE VIEW the_first_view AS
+SELECT 
+	o.order_date,
+	o.required_date,
+	o.shipped_date,
+	o.ship_postal_code,
+	c.company_name,
+	c.contact_name,
+	c.phone,
+	e.last_name,
+	e.first_name,
+	e.title
+FROM orders o
+JOIN customers c USING(customer_id)
+JOIN employees e USING(employee_id)
+
+SELECT *
+FROM the_first_view
+WHERE order_date > '1997-01-01';
+```
+
+### 📝 Задание 2
+
+```sql
+CREATE VIEW the_second_view AS
+SELECT 
+	o.order_date,
+	o.required_date,
+	o.shipped_date,
+	o.ship_postal_code,
+	o.ship_country,
+	c.company_name,
+	c.contact_name,
+	c.phone,
+	e.last_name,
+	e.first_name,
+	e.title
+FROM orders o
+JOIN customers c USING(customer_id)
+JOIN employees e USING(employee_id)
+
+--убедился, что нельзя добавлять столбцы
+
+ALTER VIEW the_second_view
+ADD COLUMN reports_to smallint;
+
+ALTER VIEW the_second_view RENAME TO the_second_view_old;
+
+CREATE VIEW the_second_view AS
+SELECT 
+	o.order_date,
+	o.required_date,
+	o.shipped_date,
+	o.ship_postal_code,
+	o.ship_country,
+	c.company_name,
+	c.contact_name,
+	c.phone,
+	e.last_name,
+	e.first_name,
+	e.title,
+	e.postal_code,
+	e.reports_to
+FROM orders o
+JOIN customers c USING(customer_id)
+JOIN employees e USING(employee_id)
+
+SELECT *
+FROM the_second_view
+ORDER BY ship_country;
+
+DROP VIEW IF EXISTS the_second_view_old;
+```
+
+### 📝 Задание 3
+
+```sql
+CREATE OR REPLACE VIEW products_active AS
+SELECT *
+FROM products p 
+WHERE discontinued = 0
+WITH CHECK OPTION;
+
+-- Проверка на защиту
+
+INSERT INTO products_active (product_name, discontinued)
+VALUES
+	('Тест-Товар', 1);
+```
 
 </details>
 
