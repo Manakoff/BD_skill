@@ -417,6 +417,60 @@ VALUES
 <summary>📂 8. Логика CASE COALESCE и NULLIF</summary>
 <br>
 
+### 📝 Задание 1
+
+```sql
+INSERT INTO customers(customer_id, contact_name, city, country, company_name)
+VALUES
+	('AAAAA', 'Alfred Mann', NULL, 'USA', 'fake_company'),
+	('BBBBB', 'Alfred Mann', NULL, 'Austria','fake_company');
+
+SELECT c.contact_name, c.city, c.country
+FROM customers c
+ORDER BY 
+    c.contact_name,
+    CASE 
+        WHEN c.city IS NULL THEN c.country 
+        ELSE c.city                      
+    END;
+
+SELECT c.contact_name, c.city, c.country
+FROM customers c
+ORDER BY c.contact_name, COALESCE(c.city, c.country);
+```
+
+### 📝 Задание 2
+
+```sql
+SELECT p.product_name, p.unit_price,
+	CASE 
+		WHEN p.unit_price >= 100 THEN 'too expensive'
+		WHEN p.unit_price >= 50 THEN 'average'
+		ELSE 'low price'
+	END AS price_category
+FROM products p;
+```
+
+### 📝 Задание 3
+
+```sql
+SELECT c.contact_name, COALESCE(o.order_id::text, 'no orders') AS order_status
+FROM customers c
+LEFT JOIN orders o USING(customer_id)
+WHERE o.order_id IS NULL;
+```
+
+### 📝 Задание 4
+
+```sql
+SELECT (e.last_name || ' ' || e.first_name) AS full_name, 
+	CASE e.title
+		WHEN 'Sales Representative' THEN 'Sales Stuff'
+		ELSE e.title
+	END AS job_title
+FROM employees e;
+```
+
 </details>
 
 <details>
