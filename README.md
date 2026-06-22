@@ -199,6 +199,113 @@ VALUES
 ```sql
 TRUNCATE TABLE exam RESTART IDENTITY;
 ```
+
+### 📝 Задание 9
+
+```sql
+CREATE TABLE exam
+(
+	exam_id serial NOT NULL,
+	exam_name varchar(64),
+	exam_data date,
+	CONSTRAINT exam_exam_id_key UNIQUE(exam_id)
+);
+```
+
+### 📝 Задание 10
+
+```sql
+ALTER TABLE exam
+DROP CONSTRAINT exam_exam_id_key;
+```
+
+### 📝 Задание 11
+
+```sql
+ALTER TABLE exam
+ADD PRIMARY KEY (exam_id);
+```
+
+### 📝 Задание 12
+
+```sql
+CREATE TABLE person
+(
+	identity_id int PRIMARY KEY,
+	last_name varchar(64),
+	first_name varchar(64),
+);
+```
+
+### 📝 Задание 13
+
+```sql
+CREATE TABLE passport
+(
+	passport_id int,
+	serial_number int NOT NULL,
+	registration varchar(256),
+	identity_id int,
+	CONSTRAINT pk_passport_pasport_id PRIMARY KEY (passport_id)
+	CONSTRAINT fk_passport_indentity FOREIGN KEY (identity_id) REFERENCES person(identity_id)
+);
+```
+
+### 📝 Задание 14
+
+```sql
+CREATE TABLE student
+(
+	student_id serial PRIMARY KEY,
+	full_name varchar(256),
+	curse int DEFAULT 1
+);
+```
+
+### 📝 Задание 15
+
+```sql
+INSERT INTO student (full_name)
+VALUES
+	('Иван Иванов'),
+	('Пётр Петров');
+
+SELECT *
+FROM student
+```
+
+### 📝 Задание 16
+
+```sql
+ALTER TABLE  student
+ALTER COLUMN curse DROP DEFAULT;
+```
+
+### 📝 Задание 17
+
+```sql
+ALTER TABLE products
+ADD CONSTRAINT chk_products_unit_price CHECK(unit_price > 0)
+```
+
+### 📝 Задание 18
+
+```sql
+CREATE SEQUENCE IF NOT EXISTS seq1
+INCREMENT BY 1;
+SELECT setval('seq1', (SELECT MAX(product_id) FROM products));
+
+ALTER TABLE products
+ALTER COLUMN product_id SET DEFAULT nextval('seq1');
+```
+
+### 📝 Задание 19
+
+```sql
+INSERT INTO products (product_name, supplier_id, category_id, quantity_per_unit, unit_price, units_in_stock, units_on_order, reorder_level, discontinued)
+VALUES ('Крипто-Пряник', 1, 1, '10 шт в коробке', 15.50, 100, 0, 5, 0) RETURNING product_id;
+```
+
 </details>
 
 <details>
