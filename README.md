@@ -311,7 +311,14 @@ VALUES ('Крипто-Пряник', 1, 1, '10 шт в коробке', 15.50, 1
 <details>
 <summary>📂 6. Проектирование БД</summary>
 <br>
-
+В данной области я изучил такие темы и ключевые моментыб как:
+	* Стадии проектированияя БД
+	* Анализ требований 
+	* Логическое проектирование 
+	* Моделирование БД( ER Diagrams)
+	* Базовые рекомендации 
+	* Плохие практики
+	* А также одно из самы главных это НФ(Нормальная форма), есть 5 НФ(по крайней мере я их изучил, мб есть ещё) 
 </details>
 
 <details>
@@ -477,12 +484,242 @@ FROM employees e;
 <summary>📂 9. Функции SQL и PL pgSQL</summary>
 <br>
 
+### 📝 Задание 1
+```sql
+CREATE OR REPLACE FUNCTION cupy_customers()
+RETURNS void AS $$ 
+	DROP TABLE IF EXISTS customers_backup;
+	SELECT *
+	INTO customers_backup
+	FROM customers;
+$$ LANGUAGE sql;
+
+SELECT cupy_customers();
+```
+
+### 📝 Задание 2
+```sql
+CREATE OR REPLACE FUNCTION avg_freight()
+RETURNS real AS $$
+	SELECT AVG(o.freight)
+	FROM orders o;
+
+$$ LANGUAGE sql;
+
+SELECT avg_freight();
+```
+
+### 📝 Задание 3
+```sql
+CREATE OR REPLACE FUNCTION get_random_number(low_bound int, high_bound int)
+RETURNS int AS $$
+	SELECT floor(((high_bound + 1 - low_bound) * random()) + low_bound);
+$$ LANGUAGE sql;
+
+SELECT get_random_number(10, 20);
+```
+
+### 📝 Задание 4
+```sql
+ALTER TABLE employees
+ADD COLUMN salary float8;
+
+UPDATE employees
+SET salary = 3000.00
+WHERE city = 'London';
+
+UPDATE employees
+SET salary = 2500.00
+WHERE city = 'Seattle';
+
+INSERT INTO employees (employee_id, last_name, first_name, title, city, salary)
+VALUES
+	(10, 'Davolio', 'Andrew', 'Sales Representative', 'London', 1234.56),
+	(11, 'Davolio', 'Andrew', 'Sales Representative', 'Seattle', 1234.56);
+
+CREATE OR REPLACE FUNCTION get_min_and_max_salary(f_city character varying(15))
+RETURNS TABLE(low_salary float8, high_salary float8) AS $$
+	SELECT MIN(e.salary), MAX(e.salary)
+	FROM employees e
+	WHERE e.city = f_city;
+
+$$ LANGUAGE sql;
+
+SELECT * FROM get_min_and_max_salary('London');
+```
+
+### 📝 Задание 5
+```sql
+CREATE OR REPLACE FUNCTION upgrate_salary(percent float8 DEFAULT 0.15, upper_limit float8 DEFAULT 5000.00)
+RETURNS void AS $$
+	UPDATE employees
+	SET salary = salary * (1 + percent)
+	WHERE salary < upper_limit;
+
+$$ LANGUAGE sql;
+
+SELECT upgrate_salary();
+```
+
+### 📝 Задание 6
+```sql
+CREATE OR REPLACE FUNCTION upgrate_salary_get_info(percent float8 DEFAULT 0.15, upper_limit float8 DEFAULT 5000.00)
+RETURNS SETOF employees AS $$
+	UPDATE employees
+	SET salary = salary * (1 + percent)
+	WHERE salary < upper_limit
+	RETURNING *;
+
+$$ LANGUAGE sql;
+
+SELECT * FROM upgrate_salary_get_info(0.2, 8000)
+```
+
+### 📝 Задание 7
+```sql
+CREATE OR REPLACE FUNCTION upgrate_salary_get_info_2(percent float8 DEFAULT 0.15, upper_limit float8 DEFAULT 5000.00)
+RETURNS TABLE(out_last_name character varying(20), out_first_name character varying(10), out_title character varying(30), out_salary float8) AS $$
+	UPDATE employees
+	SET salary = salary * (1 + percent)
+	WHERE salary < upper_limit
+	RETURNING last_name AS out_last_name, first_name AS out_first_name, title AS out_title, salary AS out_salary;
+
+$$ LANGUAGE sql;
+
+SELECT * FROM upgrate_salary_get_info_2(0.2, 8000)
+```
+
+### 📝 Задание 8
+```sql
+CREATE OR REPLACE FUNCTION new_freight_avg(method_del smallint)
+RETURNS SETOF orders AS $$
+	DECLARE
+    	max_freight numeric;
+    	avg_freight numeric;
+    	avg_total numeric;
+	BEGIN
+		SELECT MAX(freight) * 0.7, AVG(freight) 
+		INTO max_freight, avg_freight 
+		FROM orders 
+		WHERE ship_via = method_del;
+		
+		avg_total := (max_freight + avg_freight) / 2;
+		
+		RETURN QUERY
+		SELECT *
+		FROM orders o
+		WHERE o.freight < avg_total;
+		
+	END;
+$$ LANGUAGE plpgsql;
+
+-- или
+
+CREATE OR REPLACE FUNCTION new_freight_avg(method_del smallint) 
+RETURNS SETOF orders AS $$
+    SELECT * 
+    FROM orders 
+    WHERE freight < (
+        SELECT (MAX(freight) * 0.7 + AVG(freight)) / 2 
+        FROM orders 
+        WHERE ship_via = method_del
+    );
+$$ LANGUAGE sql;
+```
+
+### 📝 Задание 9
+```sql
+DROP FUNCTION salary_check;
+CREATE OR REPLACE FUNCTION salary_check(salary numeric, max_salary numeric, min_salary numeric, percent float8)
+RETURNS boolean AS $$
+
+	BEGIN
+		IF salary >= min_salary THEN 
+			RETURN false;
+		ELSEIF salary < min_salary THEN
+			salary := salary * (1 + percent);
+			IF salary > max_salary THEN
+				RETURN false;
+			ELSE
+				RETURN true;
+			 END IF;
+		END IF;
+	END;
+$$ LANGUAGE plpgsql;
+```
+
 </details>
 
 <details>
 <summary>📂 10. Ошибки и их обработка</summary>
 <br>
+	
+### 📝 Задание
+```sql
 
+CREATE OR REPLACE FUNCTION should_increase_salary(
+    cur_salary numeric,
+    max_salary numeric DEFAULT 80, 
+    min_salary numeric DEFAULT 30,
+    increase_rate numeric DEFAULT 0.2
+    ) RETURNS bool AS $$
+DECLARE
+    new_salary numeric;
+BEGIN
+	IF min_salary > max_salary THEN
+		RAISE EXCEPTION 'минимальный уровень з/п превышает максимальный' 
+		USING ERRCODE=45000;
+	ELSIF min_salary < 0 or max_salary < 0 THEN
+		RAISE EXCEPTION 'ни минимальный, ни максимальный уровень з/п не могут быть меньше нуля' 
+		USING ERRCODE=45001;
+	ELSIF increase_rate < 0.05 THEN
+		RAISE EXCEPTION 'коэффициент повышения зарплаты не может быть ниже 5%%'
+		USING ERRCODE=45002;
+	END IF;
+	
+    IF cur_salary >= max_salary OR cur_salary >= min_salary THEN        
+        RETURN false;
+    END IF;
+    
+    IF cur_salary < min_salary THEN
+        new_salary = cur_salary + (cur_salary * increase_rate);
+    END IF;
+    
+    IF new_salary > max_salary THEN
+        RETURN false;
+    ELSE
+        RETURN true;
+    END IF;    
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION should_increase_salary_examination(
+	cur_salary numeric,
+    max_salary numeric DEFAULT 80, 
+    min_salary numeric DEFAULT 30,
+	increase_rate numeric DEFAULT 0.2
+) RETURNS text AS $$
+DECLARE
+	err_ctx text;
+	err_msg text;
+	err_code text;
+BEGIN
+	RETURN should_increase_salary(cur_salary, max_salary, min_salary, increase_rate);
+EXCEPTION 
+	WHEN SQLSTATE '45000', SQLSTATE '45001', SQLSTATE '45002' THEN
+		GET STACKED DIAGNOSTICS
+			err_ctx = PG_EXCEPTION_CONTEXT,
+			err_msg = MESSAGE_TEXT,
+			err_code = RETURNED_SQLSTATE;
+		RAISE INFO 'My custom handler: ';
+		RAISE INFO 'Error msg: %', err_msg;
+		RAISE INFO 'Error code: %', err_code;
+		RAISE INFO 'Error ctx: %', err_ctx;
+		RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+```
 </details>
 
 <details>
