@@ -831,6 +831,53 @@ REINDEX INDEX idx_logs_status;
 <summary>📂 13. Массивы</summary>
 <br>
 
+### 📝 Задание 1
+```sql
+CREATE OR REPLACE FUNCTION avg_fright_city(VARIADIC cities character varying(15)[])
+RETURNS SETOF float8 AS $$
+DECLARE
+    city character varying;
+    res float8;
+BEGIN
+	FOREACH city IN ARRAY cities
+	LOOP
+		SELECT AVG(o.freight) INTO res
+		FROM orders o
+		WHERE o.ship_city = city;
+		
+		RETURN NEXT res;
+	END LOOP;
+
+	RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT *
+FROM avg_fright_city('Graz', 'México D.F.')
+```
+
+### 📝 Задание 2
+```sql
+CREATE OR REPLACE FUNCTION find_valid_phone(code int, VARIADIC phones text[])
+RETURNS SETOF text AS $$
+DECLARE
+	phone text;
+BEGIN
+	FOREACH phone in ARRAY phones
+	LOOP
+		IF phone LIKE CONCAT('%(', code, ')%') THEN
+			RETURN NEXT phone;
+		--или 
+		--IF phone LIKE '__(' || code || ')%'
+		END IF;
+	END LOOP;
+	RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM find_valid_phone(903, '+7(903)1901235', '+7(926)8567589', '+7(903)1532476')
+```
+
 </details>
 
 <details>
