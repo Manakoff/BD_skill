@@ -733,6 +733,98 @@ $$ LANGUAGE plpgsql;
 <summary>📂 12. Индексы</summary>
 <br>
 
+### 📝 Задание 1
+```sql
+CREATE INDEX idx_orders_employee_id ON orders(employee_id);
+
+SELECT o.order_id, o.order_date, e.last_name 
+FROM orders o
+JOIN employees e ON o.employee_id = e.employee_id
+WHERE o.employee_id = 4;
+```
+
+### 📝 Задание 2
+```sql
+CREATE INDEX idx_customers_company_name ON customers(company_name varchar_pattern_ops);
+
+SELECT customer_id, company_name, contact_name 
+FROM customers 
+WHERE company_name LIKE 'M%';
+```
+
+### 📝 Задание 3
+```sql
+CREATE INDEX idx_orders_ship_country ON orders(ship_country, order_date NULLS LAST);
+
+SELECT order_id, customer_id, order_date, ship_country 
+FROM orders 
+WHERE ship_country = 'France' 
+ORDER BY order_date ASC;
+```
+
+### 📝 Задание 4
+```sql
+CREATE INDEX idx_orders_date ON orders(shipped_date, required_date)
+WHERE shipped_date > required_date;
+
+SELECT order_id, customer_id, shipped_date, required_date 
+FROM orders 
+WHERE shipped_date > required_date;
+```
+
+### 📝 Задание 5
+```sql
+CREATE INDEX idx_order_details_order_id ON order_details(order_id)
+INCLUDE (product_id, unit_price);
+
+SELECT product_id, unit_price 
+FROM order_details 
+WHERE order_id = 10250;
+```
+
+### 📝 Задание 6
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX idx_products_product_name ON products USING GIN(product_name gin_trgm_ops);
+
+SELECT product_id, product_name 
+FROM products 
+WHERE product_name LIKE '%Toast%';
+```
+
+### 📝 Задание 7
+```sql
+CREATE TABLE system_logs (
+    id SERIAL PRIMARY KEY,
+    status TEXT,
+    payload TEXT
+);
+
+INSERT INTO system_logs (status, payload)
+SELECT 
+    CASE WHEN random() > 0.1 THEN 'SUCCESS' ELSE 'ERROR' END,
+    repeat('some_data_', 5)
+FROM generate_series(1, 100000);
+
+CREATE INDEX idx_logs_status ON system_logs(status);
+
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM system_logs WHERE status = 'ERROR';
+
+UPDATE system_logs SET status = 'ERROR' WHERE status = 'ERROR';
+UPDATE system_logs SET status = 'ERROR' WHERE status = 'ERROR';
+UPDATE system_logs SET status = 'ERROR' WHERE status = 'ERROR';
+UPDATE system_logs SET status = 'ERROR' WHERE status = 'ERROR';
+UPDATE system_logs SET status = 'ERROR' WHERE status = 'ERROR';
+
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM system_logs WHERE status = 'ERROR';
+
+VACUUM system_logs;
+REINDEX INDEX idx_logs_status;
+```
+
 </details>
 
 <details>
