@@ -884,6 +884,108 @@ SELECT * FROM find_valid_phone(903, '+7(903)1901235', '+7(926)8567589', '+7(903)
 <summary>📂 14. Пользовательские типы</summary>
 <br>
 
+### 📝 Задание 1
+```sql
+CREATE TYPE salary_by_city AS (
+	emp_city varchar,
+	min_salary numeric,
+	max_salary numeric
+	
+);
+
+CREATE OR REPLACE FUNCTION get_salary_boundaries_by_city(p_city varchar) 
+RETURNS salary_by_city AS $$
+    SELECT 
+		p_city, 
+		MIN(salary),
+        MAX(salary)
+    FROM employees
+    WHERE city = p_city
+	
+$$ LANGUAGE sql;
+
+SELECT * FROM get_salary_boundaries_by_city('London');
+```
+
+### 📝 Задание 2
+```sql
+CREATE TYPE army_ranks AS ENUM ('Private', 'Corporal', 'Sergeant');
+
+SELECT enumlabel
+FROM pg_enum
+WHERE enumtypid = 'army_ranks'::regtype
+ORDER BY enumsortorder;
+
+ALTER TYPE army_ranks ADD VALUE 'Major' AFTER 'Sergeant';;
+
+CREATE TABLE personnel(
+	person_id serial PRIMARY KEY,
+	first_name varchar(32),
+	last_name varchar(32),
+	person_rank army_ranks
+);
+
+INSERT INTO personnel(first_name, last_name, person_rank)
+VALUES ('Иван', 'Иванов', 'Major');
+
+SELECT *
+FROM personnel;
+
+DROP TYPE army_ranks;
+```
+
+### 📝 Задание 3
+```sql
+CREATE DOMAIN product_price AS numeric(10, 2) 
+CHECK (VALUE > 0);
+
+CREATE DOMAIN sku_code AS TEXT
+CHECK (VALUE ~* '^[0-9]{6}$');
+
+CREATE TABLE online_store_products(
+	product_id serial PRIMARY KEY,
+	item_code sku_code,
+	title varchar(100),
+	price product_price
+);
+
+INSERT INTO online_store_products(item_code, title, price)
+VALUES ('12456', 'Описание', 20.2);
+
+INSERT INTO online_store_products(item_code, title, price)
+VALUES ('124567', 'Описание', 20.3);
+
+INSERT INTO online_store_products(item_code, title, price)
+VALUES ('124567', 'Описание', -20.32);
+```
+
+### 📝 Задание 4
+```sql
+CREATE TYPE time_range AS RANGE (
+	subtype = time
+);
+
+CREATE TABLE guard_shifts (
+	shift_id serial PRIMARY KEY,
+	guard_name varchar(50),
+	work_hours time_range
+);
+
+INSERT INTO guard_shifts(guard_name, work_hours)
+VALUES 
+	('Ivan', '[8:00:00, 16:00:00)'::time_range),
+	('Peter', '[16:00:00, 23:00:00)'::time_range);
+
+SELECT gs.guard_name 
+FROM guard_shifts gs
+WHERE work_hours @> '12:30:00'::time;
+
+SELECT g1.guard_name, g2.guard_name
+FROM guard_shifts g1, guard_shifts g2
+WHERE g1.guard_name = 'Ivan' AND g2.guard_name = 'Peter'
+  AND g1.work_hours && g2.work_hours;
+```
+
 </details>
 
 <details>
